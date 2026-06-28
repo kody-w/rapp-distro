@@ -1,0 +1,14 @@
+{
+  "spec": "rapp-distro/1.0",
+  "distro": "RAPP (the reference distro)",
+  "kernel": {
+    "grail": "kody-w/rapp-installer",
+    "tag": "v0.6.0",
+    "frozen": {
+      "rapp_brainstem/brainstem.py": "f7fb359bbe8b6ba3db3665d81cb8e573a266c716278d8d21d8962ea40821e5aa",
+      "rapp_brainstem/agents/basic_agent.py": "701488bc00d536a7b23295e7da99c62f24e9b00f233daa325886430c736b78eb",
+      "rapp_brainstem/VERSION": "97a5d6e540a6120d09c39ddb667e0e8e2bac7fcc2ffef813b82e08fd60365bce"
+    }
+  },
+  "channel": "lts"
+}

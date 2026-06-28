@@ -1,0 +1,13 @@
+name: kernel-freeze
+# rapp-distro/1.0 — prove the distro ships an UNMODIFIED kernel (pin, don't fork).
+on: [push, pull_request, workflow_dispatch]
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Verify the frozen kernel set == grail @ pinned tag
+        run: python3 check_kernel_pin.py
