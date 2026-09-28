@@ -12,6 +12,19 @@
 - **A distro.** The unmodified kernel (pinned to a grail tag) + a **userland**: `soul.md`, `agents/`, `index.html`/branding, bundled specs, docs — everything that is *not* the frozen kernel. [`kody-w/RAPP`](https://github.com/kody-w/RAPP) is the **reference distro** (pins kernel `v0.6.0`).
 - **The userspace = agents.** Drop-in `*_agent.py` files are the only unit of extension — the distro's "packages." Never a kernel edit.
 
+> **Correction (recorded 2026-09-26, not yet a versioned amendment).** This note governs the "frozen
+> ABI" definition above where they differ, and that wording is kept as superseded. The kernel discovers
+> agents only from the **top level** of `agents/` (`agents/*_agent.py`), fresh on every `/chat`
+> request: every folder under `agents/` is organization only and never loads, whatever its name, and
+> loading or unloading an agent is a plain file move. Every grail release since `v0.1.0`
+> (`kody-w/rapp-installer` `8220932`, 2026-03-05) loads agents this way; only the grail's pre-release
+> cores (`91d13ce` to `c5be5d5`, 2026-02-24 to 2026-03-05) globbed recursively. (The reference distro's
+> own copy recursed from `c1f356e` to `06d16f1`, 2026-04-21 to 2026-05-01, so RAPP's tags
+> `brainstem-v0.10.0` to `brainstem-v0.12.1` shipped a recursive loader; it has been flat since.) The
+> rule is RAPP proposal 0001 ([kody-w/RAPP#119](https://github.com/kody-w/RAPP/pull/119)), implemented
+> by the constitutional amendment [kody-w/RAPP#124](https://github.com/kody-w/RAPP/pull/124)
+> (`e045fc3`). The frozen kernel set and `KERNEL_PIN.json` are unchanged.
+
 ## 2. The frozen kernel set
 
 Exactly these files must be **byte-identical** to the pinned grail tag. Everything else is userland.
