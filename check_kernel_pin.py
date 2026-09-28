@@ -24,10 +24,24 @@ def get(url):
         return None
 
 
+def pin_path():
+    # A spawned distro has KERNEL_PIN.json. The standard repo itself ships only the reference pin,
+    # KERNEL_PIN.example.json, so its own kernel-freeze CI verifies that pin is honest to the grail.
+    if os.path.exists("KERNEL_PIN.json") or not os.path.exists("KERNEL_PIN.example.json"):
+        return "KERNEL_PIN.json"
+    return "KERNEL_PIN.example.json"
+
+
 def main():
-    pin = json.load(open("KERNEL_PIN.json"))
+    path = pin_path()
+    if not os.path.exists(path):
+        print("KERNEL_PIN.json not found: every distro has exactly one pin (see SPEC.md section 3)")
+        return 1
+    if path != "KERNEL_PIN.json":
+        print(f"no KERNEL_PIN.json here: verifying the reference pin {path}\n")
+    pin = json.load(open(path))
     if pin.get("spec") != "rapp-distro/1.0":
-        print("KERNEL_PIN.json: not a rapp-distro/1.0 pin")
+        print(f"{path}: not a rapp-distro/1.0 pin")
         return 1
     k = pin["kernel"]
     grail, tag, frozen = k["grail"], k["tag"], k["frozen"]
