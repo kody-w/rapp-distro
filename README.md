@@ -1,5 +1,9 @@
 # rapp-distro — spawn a RAPP distro the way you'd spin a Linux distro
 
+<!-- rapp1:network-header:start -->
+[![RAPP/1](https://kody-w.github.io/rapp-hive-public/portfolio/badges/rapp-distro.svg)](https://github.com/kody-w/rapp-hive-public/blob/main/portfolio/repos/rapp-distro.md) · **New to RAPP?** [Start here: get your Brainstem →](https://github.com/kody-w/rapp-installer#start-here)
+<!-- rapp1:network-header:end -->
+
 **A RAPP distro is the unmodified [brainstem](https://github.com/kody-w/rapp-installer) kernel, pinned to a
 version, plus a userland.** The kernel stays one sacred thing; the variety lives in the distros. This is the
 shape that made Linux rule compute — RAPP adopts it deliberately ([the philosophy](https://github.com/kody-w/rapp-spine/blob/main/FOUNDATION.md#2a-the-kerneldistro-model--the-linux-philosophy)).
