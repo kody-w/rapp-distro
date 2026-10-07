@@ -62,13 +62,16 @@ has forked a vendored kernel file.
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kody-w/rapp-distro/main/spawn-distro.sh | bash -s my-distro
-# or resolve and pin a named ref once:
+# or resolve and pin a release version once:
 curl -fsSL https://raw.githubusercontent.com/kody-w/rapp-distro/main/spawn-distro.sh |
-  bash -s my-distro 0e43ee580e78c150b1c59002456822d2e779388e
+  bash -s my-distro v0.6.15
 ```
 
-The spawner resolves the input to a full commit, vendors the frozen kernel set, writes `kernel.json`, and
-installs the checker and CI workflow.
+For a supplied version `V`, the spawner tries the grail tags `V`, `v${V#v}`,
+`brainstem-${V#v}`, and `brainstem-v${V#v}` in that order. It pins the resolved full commit, reads
+`version` from the grail `VERSION` file at that commit, vendors the frozen kernel set, writes only
+`kernel.json`, and installs the checker and CI workflow. With no version, it pins the current `main`
+commit.
 
 ## 5. Upgrading
 

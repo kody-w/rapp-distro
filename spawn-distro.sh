@@ -1,30 +1,103 @@
 #!/usr/bin/env bash
 # Scaffold an unmodified pinned kernel plus a userland.
 #
-#   bash spawn-distro.sh <distro-path> [kernel-ref]
+#   bash spawn-distro.sh <distro-path> [kernel-version]
 #   curl -fsSL https://raw.githubusercontent.com/kody-w/rapp-distro/main/spawn-distro.sh | bash -s my-distro
 set -euo pipefail
 
-DEST="${1:?usage: spawn-distro.sh <distro-path> [kernel-ref]}"
+DEST="${1:?usage: spawn-distro.sh <distro-path> [kernel-version]}"
 NAME="$(basename "$DEST")"
 GRAIL="kody-w/rapp-installer"
 DISTRO_REPO="kody-w/rapp-distro"
-REF="${2:-main}"
-SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || true)"
+VERSION="${2:-}"
+GITHUB_API_BASE="${RAPP_GITHUB_API_BASE:-https://api.github.com}"
+SCRIPT_SOURCE="${BASH_SOURCE[0]:-}"
+SOURCE_DIR=""
+if [ -n "$SCRIPT_SOURCE" ] && [ -f "$SCRIPT_SOURCE" ]; then
+  SOURCE_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+fi
 
-SHA="$(python3 - "$GRAIL" "$REF" <<'PY'
+SHA="$(python3 - "$GRAIL" "$VERSION" "$GITHUB_API_BASE" <<'PY'
 import json
+import re
 import sys
 import urllib.parse
 import urllib.request
 
-repo, ref = sys.argv[1:3]
-url = f"https://api.github.com/repos/{repo}/commits/{urllib.parse.quote(ref, safe='')}"
-request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json", "User-Agent": "rapp-distro-spawn"})
-with urllib.request.urlopen(request, timeout=60) as response:
-    value = json.load(response)["sha"]
-if len(value) != 40:
-    raise SystemExit(f"{repo}@{ref} did not resolve to a commit")
+repo, version, api_base = sys.argv[1:4]
+base = f"{api_base.rstrip('/')}/repos/{repo}"
+headers = {
+    "Accept": "application/vnd.github+json",
+    "User-Agent": "rapp-distro-spawn",
+}
+
+
+def read_json(url):
+    request = urllib.request.Request(url, headers=headers)
+    with urllib.request.urlopen(request, timeout=60) as response:
+        return json.load(response)
+
+
+def fail(message):
+    print(message, file=sys.stderr)
+    raise SystemExit(1)
+
+
+try:
+    if not version:
+        value = read_json(f"{base}/commits/main").get("sha")
+    else:
+        tags = []
+        page = 1
+        while True:
+            batch = read_json(f"{base}/tags?per_page=100&page={page}")
+            if not isinstance(batch, list):
+                fail("could not read grail tags")
+            tags.extend(batch)
+            if len(batch) < 100:
+                break
+            page += 1
+
+        by_name = {}
+        for item in tags:
+            if not isinstance(item, dict):
+                continue
+            name = item.get("name")
+            commit = item.get("commit")
+            if isinstance(name, str) and isinstance(commit, dict):
+                sha = commit.get("sha")
+                if isinstance(sha, str):
+                    by_name[name] = sha
+        stripped = version[1:] if version.startswith("v") else version
+        candidates = (
+            version,
+            f"v{stripped}",
+            f"brainstem-{stripped}",
+            f"brainstem-v{stripped}",
+        )
+        value = next(
+            (by_name[candidate] for candidate in dict.fromkeys(candidates) if candidate in by_name),
+            None,
+        )
+        if value is None:
+            available = [
+                name for name in by_name
+                if isinstance(name, str) and name.startswith("brainstem-v")
+            ]
+
+            def version_key(name):
+                match = re.fullmatch(r"brainstem-v(\d+(?:\.\d+)*)", name)
+                if match:
+                    return (0, tuple(int(part) for part in match.group(1).split(".")), "")
+                return (1, (), name)
+
+            listed = ", ".join(sorted(available, key=version_key))
+            fail(f"version {version} not found; available brainstem versions: {listed}")
+except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+    fail(f"could not resolve grail version: {error}")
+
+if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{40}", value) is None:
+    fail("grail version did not resolve to a commit")
 print(value)
 PY
 )"
@@ -90,7 +163,9 @@ class HelloAgent(BasicAgent):
 EOF
 
 # Use the checkout's files for local spawning; piped installs fetch the published standard.
-if [ -n "$SOURCE_DIR" ] && [ -f "$SOURCE_DIR/check_kernel_pin.py" ]; then
+if [ -n "$SOURCE_DIR" ] \
+   && [ -f "$SOURCE_DIR/check_kernel_pin.py" ] \
+   && [ -f "$SOURCE_DIR/.github/workflows/kernel-freeze.yml" ]; then
   cp "$SOURCE_DIR/check_kernel_pin.py" check_kernel_pin.py
   cp "$SOURCE_DIR/.github/workflows/kernel-freeze.yml" .github/workflows/kernel-freeze.yml
 else

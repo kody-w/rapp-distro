@@ -11,3 +11,6 @@ jobs:
           python-version: "3.11"
       - name: Verify canonical kernel pin
         run: python3 check_kernel_pin.py
+      - name: Test distro spawner
+        if: ${{ hashFiles('tests/test_spawn_distro.py') != '' }}
+        run: python3 -m unittest -v tests/test_spawn_distro.py

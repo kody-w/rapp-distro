@@ -10,11 +10,20 @@ shape that made Linux rule compute — RAPP adopts it deliberately ([the philoso
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/kody-w/rapp-distro/main/spawn-distro.sh | bash -s my-distro
-# pin a specific full commit:  ... | bash -s my-distro 0e43ee580e78c150b1c59002456822d2e779388e
+# pin a release version:  ... | bash -s my-distro v0.6.15
 ```
 
 You get `./my-distro/`: the frozen kernel vendored at the pinned commit, a `kernel.json`, a starter userland
 (`soul.md` + a hello agent), and the **freeze CI**. Push it to any GitHub repo and it's a live distro.
+
+Version inputs use the same aliases as the grail installer: `v0.6.15`, `0.6.15`, and
+`brainstem-v0.6.15` all resolve to the real grail tag. The distro records only that tag's full commit SHA,
+and reads `version` from `rapp_brainstem/VERSION` at that commit. With no version argument, the spawner pins
+the current `main` commit.
+
+When run from a local checkout, the spawner copies that checkout's matching checker and workflow. When piped
+from GitHub, it downloads both files from `kody-w/rapp-distro/main`, so the published spawner and verifier
+advance together after merge.
 
 ## The model (Linux, exactly)
 
