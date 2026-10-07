@@ -6,6 +6,10 @@ shape that made Linux rule compute — RAPP adopts it deliberately ([the philoso
 
 > Standard: **[SPEC.md](SPEC.md)** (`rapp-distro/1.0`) · Pin format: **[kernel.example.json](kernel.example.json)** · Verifier: **[check_kernel_pin.py](check_kernel_pin.py)**
 
+> **Naming, for the people who use it:** "distro" is a builder's word. To the people who install yours, it is just
+> **Brainstem**, described by what it does ("Brainstem with free models", "Brainstem for your team"). Never put
+> "distro" in front of your users.
+
 ## Spawn one (permissionless — no registry, no central anything)
 
 ```bash
